@@ -1,0 +1,944 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//enum
+enum EnquiryStatus {
+  NEW
+  IN_PROGRESS
+  RESPONDED
+  CLOSED
+}
+
+enum ProjectRequestStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  QUOTE_PENDING
+  QUOTED
+  ACCEPTED
+  REJECTED
+  CONVERTED
+}
+
+enum FeatureCategory {
+  DEFAULT
+  WEBSITE
+  INDUSTRY
+  ECOMMERCE
+  BLOG
+  PORTFOLIO
+  REAL_ESTATE
+  SOFTWARE
+  CUSTOM
+}
+
+enum ProjectTimeline {
+  ONE_TO_SEVEN_DAYS
+  ONE_TO_THREE_WEEKS
+  THREE_TO_SIX_WEEKS
+  MORE_THAN_SIX_WEEKS
+  FLEXIBLE
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT
+  VIEWED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum PaymentPlanType {
+  FULL
+  TWO_INSTALLMENTS
+  THREE_INSTALLMENTS
+}
+
+enum InstallmentStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  PAYSTACK
+  FLUTTERWAVE
+  STRIPE
+  CASH
+}
+
+enum ProjectStatus {
+  PLANNING
+  DESIGN
+  DEVELOPMENT
+  TESTING
+  REVIEW
+  DEPLOYMENT
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+}
+
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  COMPLETED
+  BLOCKED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ActivityType {
+  PROJECT_CREATED
+
+  QUOTATION_APPROVED
+
+  PAYMENT_RECEIVED
+
+  PROJECT_STARTED
+
+  MILESTONE_STARTED
+
+  MILESTONE_COMPLETED
+
+  TASK_CREATED
+
+  TASK_ASSIGNED
+
+  TASK_STARTED
+
+  TASK_COMPLETED
+
+  FILE_UPLOADED
+
+  CLIENT_MESSAGE
+
+  ADMIN_MESSAGE
+
+  PROJECT_COMPLETED
+}
+
+enum DeliverableType {
+  SOURCE_CODE
+
+  DESIGN
+
+  DOCUMENTATION
+
+  WEBSITE_URL
+
+  MOBILE_BUILD
+
+  DATABASE
+
+  CREDENTIALS
+
+  OTHER
+}
+
+enum NotificationType {
+  PROJECT
+
+  PAYMENT
+
+  QUOTATION
+
+  TASK
+
+  MILESTONE
+
+  DELIVERABLE
+
+  SYSTEM
+}
+
+enum PricingType {
+  WEBSITE_TYPE
+  INDUSTRY
+  FEATURE
+}
+
+enum Currency {
+  NGN
+  USD
+  EUR
+  GBP
+  CAD
+  AUD
+}
+enum LogoOption {
+  HAVE_LOGO
+  NEED_LOGO
+  NO_LOGO
+}
+
+
+//client
+model Client {
+  id      String  @id @default(cuid())
+  name    String
+  email String @unique
+  phone   String?
+  company String?
+  country String?
+
+  enquiries       Enquiry[]
+  projectRequests ProjectRequest[]
+  notifications   Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//Enquiry
+
+model Enquiry {
+  id       String        @id @default(cuid())
+  clientId String
+  subject  String
+  message  String
+  status   EnquiryStatus @default(NEW)
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+}
+
+//website type
+model WebsiteType {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  isActive    Boolean @default(true)
+
+  projectRequests ProjectRequest[]
+  features        WebsiteTypeFeature[]
+
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  pricingConfigurations PricingConfiguration[]
+}
+
+//industry type
+model Industry {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  isActive    Boolean @default(true)
+
+  projectRequests ProjectRequest[]
+  features        IndustryFeature[]
+
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  pricingConfigurations PricingConfiguration[]
+}
+
+model IndustryFeature {
+  id         String  @id @default(cuid())
+  industryId String
+  featureId  String
+  isDefault  Boolean @default(false)
+
+  industry Industry @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  feature  Feature  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([industryId, featureId])
+  @@index([featureId])
+}
+
+//website features
+model Feature {
+  id          String          @id @default(cuid())
+  name        String
+  slug        String          @unique
+  description String?
+  category    FeatureCategory
+  price       Decimal?
+  isDefault   Boolean         @default(false)
+  isActive    Boolean         @default(true)
+
+  websiteTypes       WebsiteTypeFeature[]
+  projectRequestUses ProjectRequestFeature[]
+  industryFeatures   IndustryFeature[]
+
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  pricingConfigurations PricingConfiguration[]
+}
+
+//websiteTypeFeature, connects website type to unique features
+model WebsiteTypeFeature {
+  id            String  @id @default(cuid())
+  websiteTypeId String
+  featureId     String
+  isDefault     Boolean @default(false)
+
+  websiteType WebsiteType @relation(fields: [websiteTypeId], references: [id], onDelete: Cascade)
+  feature     Feature     @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([websiteTypeId, featureId])
+  @@index([featureId])
+}
+
+//projectRequests
+model ProjectRequest {
+  id            String     @id @default(cuid())
+  clientId      String
+  websiteTypeId String
+  industryId    String?
+  otherWebsiteType String?
+  otherIndustry    String?
+  quotation     Quotation?
+
+  projectName String
+
+  businessName String
+
+  businessDescription String?
+
+  businessServices String[]
+
+  projectGoals String[]
+
+
+  description String? //dont forget to migrate the new additionalRequirements
+
+  timeline ProjectTimeline?
+
+  primaryColor   String?
+  secondaryColor String?
+  accentColor    String?
+
+  designPreference       String?
+  referenceWebsiteUrl    String?
+  logoOption             LogoOption?
+  additionalRequirements String?
+
+  status ProjectRequestStatus @default(DRAFT)
+
+  client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  websiteType WebsiteType @relation(fields: [websiteTypeId], references: [id])
+  industry    Industry?   @relation(fields: [industryId], references: [id], onDelete: SetNull)
+
+  selectedFeatures ProjectRequestFeature[]
+  customFeatures   CustomFeature[]
+  files            ProjectRequestFile[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project?
+
+  @@index([clientId])
+  @@index([websiteTypeId])
+  @@index([industryId])
+  @@index([status])
+}
+
+//ProjectRequestFeature
+
+model ProjectRequestFeature {
+  id               String @id @default(cuid())
+  projectRequestId String
+  featureId        String
+
+  projectRequest ProjectRequest @relation(fields: [projectRequestId], references: [id], onDelete: Cascade)
+  feature        Feature        @relation(fields: [featureId], references: [id])
+
+  @@unique([projectRequestId, featureId])
+  @@index([featureId])
+}
+
+//customFeatures
+model CustomFeature {
+  id               String @id @default(cuid())
+  projectRequestId String
+  title            String
+  description      String
+
+  projectRequest ProjectRequest @relation(fields: [projectRequestId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectRequestId])
+}
+
+//ProjectRequestFile
+
+model ProjectRequestFile {
+  id               String @id @default(cuid())
+  projectRequestId String
+
+  fileName String
+  fileUrl  String
+  fileType String?
+  fileSize Int?
+
+  projectRequest ProjectRequest @relation(fields: [projectRequestId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([projectRequestId])
+}
+
+//quotationModel
+model Quotation {
+  id String @id @default(cuid())
+
+  quotationNumber String @unique
+
+  projectRequestId String @unique
+
+  subtotal Decimal
+
+  discount Decimal?
+
+  tax Decimal?
+
+  total Decimal
+
+  depositRequired Decimal?
+
+  estimatedDuration Int?
+
+  notes String?
+
+  validUntil DateTime?
+
+  status QuotationStatus @default(DRAFT)
+
+  baseCurrency Currency
+
+  baseAmount Decimal @db.Decimal(12, 2)
+
+  displayCurrency Currency
+
+  displayAmount Decimal @db.Decimal(12, 2)
+
+  exchangeRate Decimal? @db.Decimal(12, 6)
+
+  exchangeRateDate DateTime?
+
+  projectRequest ProjectRequest @relation(fields: [projectRequestId], references: [id], onDelete: Cascade)
+
+  items QuotationItem[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  paymentPlan PaymentPlan?
+  project     Project?
+}
+
+//QuotationItem
+
+model QuotationItem {
+  id String @id @default(cuid())
+
+  quotationId String
+
+  title String
+
+  description String?
+
+  quantity Int @default(1)
+
+  unitPrice Decimal
+
+  total Decimal
+
+  quotation Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+}
+
+//payment plan
+
+model PaymentPlan {
+  id String @id @default(cuid())
+
+  quotationId String @unique
+
+  type PaymentPlanType
+
+  quotation Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  installments PaymentInstallment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//PaymentInstallment
+
+model PaymentInstallment {
+  id String @id @default(cuid())
+
+  paymentPlanId String
+
+  installmentNumber Int
+
+  percentage Decimal
+
+  amount Decimal
+
+  dueDate DateTime?
+
+  status InstallmentStatus @default(PENDING)
+
+  paymentPlan PaymentPlan @relation(fields: [paymentPlanId], references: [id], onDelete: Cascade)
+
+  payment Payment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//payment model
+model Payment {
+  id String @id @default(cuid())
+
+  paymentInstallmentId String @unique
+
+  amount Decimal
+
+  paymentMethod PaymentMethod
+
+  status PaymentStatus @default(PENDING)
+
+  transactionReference String?
+
+  paidAt DateTime?
+
+  notes String?
+
+  paymentInstallment PaymentInstallment @relation(fields: [paymentInstallmentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([paymentInstallmentId])
+  @@index([status])
+}
+
+model Project {
+  id String @id @default(cuid())
+
+  projectCode String @unique
+
+  projectRequestId String @unique
+
+  quotationId String @unique
+
+  team ProjectTeam[]
+
+  name String
+
+  description String?
+
+  status ProjectStatus @default(PLANNING)
+
+  priority ProjectPriority @default(MEDIUM)
+
+  startDate DateTime?
+
+  estimatedCompletionDate DateTime?
+
+  completedAt DateTime?
+
+  progress Int @default(0)
+
+  projectRequest ProjectRequest @relation(fields: [projectRequestId], references: [id])
+
+  quotation Quotation @relation(fields: [quotationId], references: [id])
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  milestones    Milestone[]
+  activities    Activity[]
+  deliverables  Deliverable[]
+  notifications Notification[]
+  tasks         Task[]
+}
+
+//staff
+model User {
+  id String @id @default(cuid())
+
+  firstName String
+
+  lastName String
+
+  email String @unique
+
+  phone String?
+
+  avatarUrl String?
+
+  isActive Boolean @default(true)
+
+  roles UserRole[]
+
+  projectAssignments ProjectTeam[] @relation("ProjectMember")
+
+  assignedProjectMembers ProjectTeam[] @relation("ProjectAssignmentCreator")
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  tasks         Task[]
+  activities    Activity[]
+  notifications Notification[]
+}
+
+//team roles
+model Role {
+  id String @id @default(cuid())
+
+  name String @unique
+
+  description String?
+
+  users UserRole[]
+
+  projectAssignments ProjectTeam[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//UserRole
+
+model UserRole {
+  id String @id @default(cuid())
+
+  userId String
+
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+}
+
+//project team model
+model ProjectTeam {
+  id String @id @default(cuid())
+
+  projectId String
+  userId    String
+  roleId    String
+
+  assignedById String?
+
+  assignedAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  user User @relation("ProjectMember", fields: [userId], references: [id], onDelete: Cascade)
+
+  role Role @relation(fields: [roleId], references: [id])
+
+  assignedBy User? @relation("ProjectAssignmentCreator", fields: [assignedById], references: [id])
+
+  @@unique([projectId, userId, roleId])
+  @@index([projectId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+//milestone
+model Milestone {
+  id String @id @default(cuid())
+
+  projectId String
+
+  name String
+
+  description String?
+
+  order Int
+
+  tasks Task[]
+
+  status MilestoneStatus @default(PENDING)
+
+  progress Int @default(0)
+
+  startDate DateTime?
+
+  completedAt DateTime?
+
+  dueDate DateTime?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  //tasks Task[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, order])
+  @@index([projectId])
+  @@index([status])
+}
+
+//tasks, every tasks 2,3,4 belongs to one milestone
+model Task {
+  id String @id @default(cuid())
+
+  projectId String
+
+  milestoneId String
+
+  assignedToId String?
+
+  title String
+
+  description String?
+
+  status TaskStatus @default(TODO)
+
+  priority TaskPriority @default(MEDIUM)
+
+  estimatedHours Float?
+
+  actualHours Float?
+
+  dueDate DateTime?
+
+  completedAt DateTime?
+
+  milestone Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+
+  assignedTo User? @relation(fields: [assignedToId], references: [id])
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  updatedAt  DateTime   @updatedAt
+  activities Activity[]
+
+  @@unique([projectId])
+  @@index([milestoneId])
+  @@index([assignedToId])
+  @@index([status])
+}
+
+model Activity {
+  id String @id @default(cuid())
+
+  projectId String
+
+  userId String?
+
+  taskId String?
+
+  title String
+
+  description String?
+
+  type ActivityType
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  user User? @relation(fields: [userId], references: [id])
+
+  task Task? @relation(fields: [taskId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([taskId])
+  @@index([type])
+}
+
+//deliverables
+
+model Deliverable {
+  id String @id @default(cuid())
+
+  projectId String
+
+  title String
+
+  description String?
+
+  type DeliverableType
+
+  fileName String?
+
+  fileUrl String?
+
+  externalUrl String?
+
+  version String?
+
+  deliveredAt DateTime?
+
+  isClientVisible Boolean @default(true)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([type])
+}
+
+model Notification {
+  id String @id @default(cuid())
+
+  userId String?
+
+  clientId String?
+
+  projectId String?
+
+  title String
+
+  message String
+
+  type NotificationType
+
+  isRead Boolean @default(false)
+
+  readAt DateTime?
+
+  user User? @relation(fields: [userId], references: [id])
+
+  client Client? @relation(fields: [clientId], references: [id])
+
+  project Project? @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([projectId])
+  @@index([isRead])
+}
+
+model BusinessSettings {
+  id String @id @default(cuid())
+
+  companyName String
+
+  companyEmail String
+
+  companyPhone String?
+
+  companyAddress String?
+
+  websiteUrl String?
+
+  logoUrl String?
+
+  currency Currency @default(NGN)
+
+  timezone String @default("Africa/Lagos")
+
+  quotationValidityDays Int @default(14)
+
+  defaultDepositPercentage Decimal @db.Decimal(5, 2)
+
+  maxInstallments Int @default(3)
+
+  taxEnabled Boolean @default(false)
+
+  taxPercentage Decimal? @db.Decimal(5, 2)
+
+  maintenanceMode Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
+
+model PricingConfiguration {
+  id String @id @default(cuid())
+
+  websiteTypeId String?
+
+  industryId String?
+
+  featureId String?
+
+  name String
+
+  description String?
+
+  pricingType PricingType
+
+  amount Decimal @db.Decimal(12, 2)
+
+  isActive Boolean @default(true)
+
+  websiteType WebsiteType? @relation(fields: [websiteTypeId], references: [id])
+
+  industry Industry? @relation(fields: [industryId], references: [id])
+
+  feature Feature? @relation(fields: [featureId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([websiteTypeId])
+  @@index([industryId])
+  @@index([featureId])
+}

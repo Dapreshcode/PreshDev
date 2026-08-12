@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: preshdev-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: preshdev
+      POSTGRES_PASSWORD: preshdev_dev_password
+      POSTGRES_DB: preshdev
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - preshdev_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  preshdev_postgres_data:
