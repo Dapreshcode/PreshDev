@@ -770,7 +770,7 @@ model Task {
   updatedAt  DateTime   @updatedAt
   activities Activity[]
 
-  @@unique([projectId])
+  @@index([projectId])
   @@index([milestoneId])
   @@index([assignedToId])
   @@index([status])
