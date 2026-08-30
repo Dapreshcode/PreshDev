@@ -83,7 +83,7 @@ screenshots: [
     ],
     thumbnail: "/images/projects/preshdev-portfolio/thumbnail.webp",
     heroImage: "/images/projects/preshdev-portfolio/hero.webp",
-    liveUrl: "YOUR_PORTFOLIO_URL",
+    liveUrl: "https://precious-portfolio.vercel.app/",
     caseStudy: {
       challenge:
         "Create a professional online presence that clearly communicates web development capabilities and showcases completed projects.",
