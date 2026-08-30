@@ -81,8 +81,8 @@ screenshots: [
       "Tailwind CSS",
       "Framer Motion",
     ],
-    thumbnail: "/images/projects/presh-dev-portfolio/thumbnail.webp",
-    heroImage: "/images/projects/presh-dev-portfolio/hero.webp",
+    thumbnail: "/images/projects/preshdev-portfolio/thumbnail.webp",
+    heroImage: "/images/projects/preshdev-portfolio/hero.webp",
     liveUrl: "YOUR_PORTFOLIO_URL",
     caseStudy: {
       challenge:
@@ -92,6 +92,26 @@ screenshots: [
       outcome:
         "A professional digital presence that demonstrates technical skills and provides a foundation for attracting new opportunities and clients.",
     },
+
+       screenshots: [
+  {
+    src: "/images/projects/preshdev-portfolio/tech-stack.webp",
+    alt: "Income Builders dashboard showing the platform's content experience",
+    caption:
+      "A personalized dashboard that brings the Income Builders content experience together in one place.",
+  },
+  {
+    src: "/images/projects/preshdev-portfolio/contact.webp",
+    alt: "Income Builders Start Here page guiding users through the platform",
+    caption:
+      "A guided Start Here experience designed to help new users understand the platform and find the right place to begin.",
+  },
+  {
+    src: "/images/projects/preshdev-portfolio/thumbnail.webp",
+    alt: "Income Builders blog page displaying structured and readable content",
+    caption:
+      "A structured blog experience designed to make discovering and reading content simple and enjoyable.",
+  } ],
   },
 
   {
@@ -164,5 +184,8 @@ screenshots: [
       outcome:
         "A reusable e-commerce foundation that can be customized and extended to meet the unique requirements of different businesses.",
     },
+
+
+ 
   },
 ];

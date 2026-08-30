@@ -58,35 +58,7 @@ export default function StepProjectDetails() {
         />
       </div>
 
-      {/* Reference Website */}
-      <div className="space-y-2">
-        <label
-          htmlFor="referenceWebsiteUrl"
-          className="text-sm font-medium text-text-primary"
-        >
-          Reference website
-          <span className="ml-2 text-text-muted">(optional)</span>
-        </label>
-
-        <p className="text-sm text-text-muted">
-          Have a website whose design or functionality you like?
-          Share the link with us.
-        </p>
-
-        <input
-          id="referenceWebsiteUrl"
-          type="url"
-          value={data.referenceWebsiteUrl}
-          onChange={(event) =>
-            updateField(
-              "referenceWebsiteUrl",
-              event.target.value
-            )
-          }
-          placeholder="https://example.com"
-          className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-text-primary outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent"
-        />
-      </div>
+      
     </div>
   );
 }

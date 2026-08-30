@@ -5,7 +5,18 @@ import { useState } from "react";
 
 import { useProjectWizard } from "@/hooks/useProjectWizard";
 
-export default function StepProjectSubmit() {
+
+interface StepProjectSubmitProps {
+  onSuccess: (result: {
+    projectRequestId: string;
+    projectCode?: string;
+  }) => void;
+}
+
+export default function StepProjectSubmit({
+  onSuccess,
+}: StepProjectSubmitProps) {
+
   const { data } = useProjectWizard();
 
   const [submitting, setSubmitting] = useState(false);
@@ -16,46 +27,81 @@ export default function StepProjectSubmit() {
     setError(null);
 
     try {
-      // Temporary submission endpoint.
-      // We'll connect this to the real server action next.
-      const response = await fetch("/api/project-requests", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          websiteTypeId: data.websiteTypeId,
-          industryId: data.industryId,
+  const response = await fetch("/api/project-requests", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    client: {
+      name: data.clientName,
+      email: data.clientEmail,
+      phone: data.clientPhone,
+    },
 
-          projectName: data.projectName,
+    websiteTypeId: data.websiteTypeId,
+    industryId: data.industryId || null,
 
-          businessName: data.businessName,
-          businessDescription: data.businessDescription,
-          businessServices: data.servicesOffered,
+    otherWebsiteType: data.otherWebsiteType,
+    otherIndustry: data.otherIndustry,
 
-          projectGoals: data.projectGoals,
+    projectName: data.projectName,
 
-          selectedFeatureIds: data.selectedFeatureIds,
-          customFeatures: data.customFeatures,
+    businessName: data.businessName,
+    businessDescription: data.businessDescription,
+    businessServices: data.servicesOffered,
 
-          timeline: data.timeline,
+    businessRegistrationNumber:
+      data.businessRegistrationNumber,
 
-          primaryColor: data.primaryColor,
-          secondaryColor: data.secondaryColor,
-          accentColor: data.accentColor,
+    businessAddress:
+      data.businessAddress,
 
-          designPreference: data.designPreference,
-          referenceWebsiteUrl: data.referenceWebsiteUrl,
+    countryOfOperation:
+      data.countryOfOperation,
 
-          logoOption: data.logoOption,
-          additionalRequirements:
-            data.additionalRequirements,
-        }),
-      });
+    projectGoals: data.projectGoals,
+    otherProjectGoal: data.otherProjectGoal,
 
-      if (!response.ok) {
-        throw new Error("Unable to submit project request.");
-      }
+    description: data.description,
+
+    selectedFeatureIds: data.selectedFeatureIds,
+    customFeatures: data.customFeatures,
+
+    designStyle: data.designStyle,
+    designPreference: data.designPreference,
+
+    primaryColor: data.primaryColor,
+    secondaryColor: data.secondaryColor,
+    accentColor: data.accentColor,
+
+    referenceWebsiteUrl:
+      data.referenceWebsiteUrl,
+
+    logoOption: data.logoOption,
+    additionalRequirements:
+      data.additionalRequirements,
+
+    hasContent: data.hasContent,
+
+    timeline: data.timeline,
+    budget: data.budget,
+    currency: data.currency,
+  }),
+});
+
+const result = await response.json();
+
+onSuccess({
+  projectRequestId: result.projectRequestId,
+  projectCode: result.projectCode,
+});
+
+if (!response.ok) {
+  throw new Error(
+    result.error || "Unable to submit project request."
+  );
+}
 
       // We'll replace this with the actual success flow.
       console.log("Project request submitted");
