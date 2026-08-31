@@ -28,7 +28,7 @@ export const projects: Project[] = [
     ],
     thumbnail: "/images/projects/income-builders/thumbnail.webp",
     heroImage: "/images/projects/income-builders/hero.webp",
-    liveUrl: "YOUR_INCOME_BUILDERS_URL",
+    liveUrl: "https://smart-income-builders.vercel.app/start-here",
     caseStudy: {
   challenge:
     "Create a modern content platform that could deliver valuable educational content while building an audience and capturing leads.",
